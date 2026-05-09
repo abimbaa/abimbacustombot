@@ -58,7 +58,6 @@ func handleHelp(args string) { //lists all commands, can take an argument to exp
 }
 
 func handleScreenshot(args string) {
-	fmt.Println("Working.")
     pollAmount := 1
     pollDelay := 0
 
@@ -71,8 +70,7 @@ func handleScreenshot(args string) {
 }
 
 func handleStatus(args string) { // returns ram / cpu usage and maybe something else
-	fmt.Println("System Status: NORMAL")
-	fmt.Println("Memory Load: LOW")
+	runProcess(VENV_PYTHON, "./scripts/status.py")
 }
 
 func handleRawCommand(args string) { //cmd commands
@@ -103,9 +101,6 @@ func handleDeepSeek(input string) { // deepseek to parse to a command
 
 // --- UTILITIES ---
 
-// runProcess executes external commands and bridges their output to our API contract
-// runProcess executes external commands and bridges their output to our API contract
-// runProcess executes external commands and bridges their output to our API contract
 func runProcess(name string, args ...string) {
 	cmd := exec.Command(name, args...)
 	
