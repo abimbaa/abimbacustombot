@@ -13,3 +13,4 @@ scripts/.venv/
 .venv/
 *.cwd
 .vscode/
+data/

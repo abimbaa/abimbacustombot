@@ -31,6 +31,11 @@ var registry = map[string]CommandFunc{
 	"/ps":   handlePs,
 	"/kill": handleKill,
 	"/run":    handleLaunch,
+	"/note":  handleNote,
+	"/notes": handleReadNotes,
+	"/plan":  handlePlan,
+	"/plans": handleListPlans,
+	"/pdel":  handleDelPlan,
 }
 
 func main() {
@@ -116,6 +121,22 @@ func handleType(args string) {
 		return
 	}
 	runProcess(VENV_PYTHON, "./scripts/type_text.py", args)
+}
+
+func handleNote(args string) {
+	runProcess(VENV_PYTHON, "./scripts/notebook.py", "add_note", args)
+}
+func handleReadNotes(args string) {
+	runProcess(VENV_PYTHON, "./scripts/notebook.py", "read_notes")
+}
+func handlePlan(args string) {
+	runProcess(VENV_PYTHON, "./scripts/notebook.py", "add_plan", args)
+}
+func handleListPlans(args string) {
+	runProcess(VENV_PYTHON, "./scripts/notebook.py", "list_plans")
+}
+func handleDelPlan(args string) {
+	runProcess(VENV_PYTHON, "./scripts/notebook.py", "del_plan", args)
 }
 
 func handleClipboard(args string) {
