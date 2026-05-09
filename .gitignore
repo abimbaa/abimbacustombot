@@ -1,0 +1,11 @@
+# Go
+bin/
+*.exe
+go.sum
+
+# Python
+__pycache__/
+scripts/.venv/
+
+# Other
+.env
