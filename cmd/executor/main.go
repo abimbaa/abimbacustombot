@@ -30,6 +30,7 @@ var registry = map[string]CommandFunc{
 	"/type": handleType,
 	"/ps":   handlePs,
 	"/kill": handleKill,
+	"/run":    handleLaunch,
 }
 
 func main() {
@@ -68,6 +69,14 @@ func handleGetFile(args string) {
 
 	fmt.Printf("🔍 Searching for '%s'...\n", args)
 	runProcess(VENV_PYTHON, "./scripts/get_file.py", args)
+}
+
+func handleLaunch(args string) {
+	if args == "" {
+		fmt.Println("⚠️ ERROR: Please specify an app name. Usage: /run <app_name>")
+		return
+	}
+	runProcess(VENV_PYTHON, "./scripts/launch.py", args)
 }
 
 func handleWebcam(args string) {	
