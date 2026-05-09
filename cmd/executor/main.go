@@ -27,6 +27,7 @@ var registry = map[string]CommandFunc{
 	"/get":    handleGetFile,
 	"/cam":    handleWebcam,
 	"/clip": handleClipboard,
+	"/type": handleType,
 }
 
 func main() {
@@ -82,6 +83,14 @@ func handleWebcam(args string) {
 
 	// Trigger the script with the arguments
 	runProcess(VENV_PYTHON, "./scripts/webcam.py", amountStr, delayStr)
+}
+
+func handleType(args string) {
+	if args == "" {
+		fmt.Println("⚠️ ERROR: Please provide text to type. Usage: /type <text>")
+		return
+	}
+	runProcess(VENV_PYTHON, "./scripts/type_text.py", args)
 }
 
 func handleClipboard(args string) {
