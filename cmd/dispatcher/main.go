@@ -3,10 +3,12 @@ package main
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -117,6 +119,29 @@ b.Handle(telebot.OnText, func(c telebot.Context) error {
 		}
 		
 		return nil
+	})
+	// Listen for files sent to the bot
+	b.Handle(telebot.OnDocument, func(c telebot.Context) error {
+		doc := c.Message().Document
+		if doc == nil {
+			return nil
+		}
+
+		// 1. Find the PC's Downloads folder automatically
+		homeDir, _ := os.UserHomeDir()
+		downloadsDir := filepath.Join(homeDir, "Downloads")
+		destPath := filepath.Join(downloadsDir, doc.FileName)
+
+		// 2. Notify the user it's downloading
+		c.Send(fmt.Sprintf("📥 Downloading '%s' to PC...", doc.FileName))
+
+		// 3. Download and save the file
+		err := c.Bot().Download(&doc.File, destPath)
+		if err != nil {
+			return c.Send(fmt.Sprintf("⚠️ ERROR: Failed to save file - %v", err))
+		}
+
+		return c.Send("✅ File successfully saved to your Downloads folder!")
 	})
 
 	go b.Start()
