@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 )
+
+const VENV_PYTHON = "./scripts/.venv/Scripts/python.exe"
 
 // CommandFunc defines the signature for all command handlers
 type CommandFunc func(args string)
@@ -53,9 +57,17 @@ func handleHelp(args string) { //lists all commands, can take an argument to exp
 	fmt.Println("Commands: ")
 }
 
-func handleScreenshot(args string) {// takes two arguments: pollAmount (by default 1), pollDelay (by default 0) and sends screenshots
-	fmt.Println("Capturing screen...")
-	runProcess("python", "./scripts/screenshot.py")
+func handleScreenshot(args string) {
+	fmt.Println("Working.")
+    pollAmount := 1
+    pollDelay := 0
+
+    fmt.Sscanf(args, "%d %d", &pollAmount, &pollDelay)
+
+    amountStr := strconv.Itoa(pollAmount)
+    delayStr := strconv.Itoa(pollDelay)
+
+    runProcess(VENV_PYTHON, "./scripts/screenshot.py", amountStr, delayStr)
 }
 
 func handleStatus(args string) { // returns ram / cpu usage and maybe something else
@@ -92,14 +104,23 @@ func handleDeepSeek(input string) { // deepseek to parse to a command
 // --- UTILITIES ---
 
 // runProcess executes external commands and bridges their output to our API contract
+// runProcess executes external commands and bridges their output to our API contract
+// runProcess executes external commands and bridges their output to our API contract
 func runProcess(name string, args ...string) {
 	cmd := exec.Command(name, args...)
+	
+	// Force execution in the project directory
+	exePath, _ := os.Executable()
+	cmd.Dir = filepath.Dir(exePath)
+	
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
-	out, err := cmd.CombinedOutput()
+
+	// Stream output directly to the Dispatcher in real-time
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("ERROR: Execution failed - %v\n", err)
-	}
-	if len(out) > 0 {
-		fmt.Print(string(out))
+		fmt.Printf("\nERROR: Execution failed - %v\n", err)
 	}
 }

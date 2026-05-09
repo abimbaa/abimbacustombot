@@ -10,4 +10,6 @@ scripts/.venv/
 
 # Other
 .env
+.venv/
 *.cwd
+.vscode/
