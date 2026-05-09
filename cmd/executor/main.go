@@ -28,6 +28,8 @@ var registry = map[string]CommandFunc{
 	"/cam":    handleWebcam,
 	"/clip": handleClipboard,
 	"/type": handleType,
+	"/ps":   handlePs,
+	"/kill": handleKill,
 }
 
 func main() {
@@ -83,6 +85,20 @@ func handleWebcam(args string) {
 
 	// Trigger the script with the arguments
 	runProcess(VENV_PYTHON, "./scripts/webcam.py", amountStr, delayStr)
+}
+
+func handlePs(args string) {
+	// Pass "list" as the first internal arg to Python
+	runProcess(VENV_PYTHON, "./scripts/process_manager.py", "list", args)
+}
+
+func handleKill(args string) {
+	if args == "" {
+		fmt.Println("⚠️ ERROR: Usage: /kill <name or pid>")
+		return
+	}
+	// Pass "kill" as the first internal arg to Python
+	runProcess(VENV_PYTHON, "./scripts/process_manager.py", "kill", args)
 }
 
 func handleType(args string) {
