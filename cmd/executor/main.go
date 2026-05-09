@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -61,6 +63,9 @@ func init() {
 	"/macros":      handleListMacros,
 	"/macro":       handleRunMacro,
 	"/delmacro":    handleDelMacro,
+	"/stt": func(filepath string) { 
+    runProcess(VENV_PYTHON, "./scripts/transcribe.py", filepath) 
+},
 }
 }
 
@@ -340,4 +345,21 @@ func saveMacros(macros map[string][]string) {
 	os.MkdirAll("data", 0755)
 	data, _ := json.MarshalIndent(macros, "", "  ")
 	os.WriteFile(macrosFile, data, 0644)
+}
+
+func downloadFile(url string, filepath string) error {
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
