@@ -36,6 +36,20 @@ var registry = map[string]CommandFunc{
 	"/plan":  handlePlan,
 	"/plans": handleListPlans,
 	"/pdel":  handleDelPlan,
+	"/volup":  func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "volup") },
+	"/voldown": func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "voldown") },
+	"/mute":    func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "mute") },
+	"/pause":   func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "playpause") },
+	"/next":    func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "next") },
+	"/prev":    func(a string) { runProcess(VENV_PYTHON, "./scripts/media_control.py", "prev") },
+	"/vol": func(a string) {
+		if a == "" {
+			fmt.Println("Error: Usage: /vol <number>")
+			return
+		}
+		runProcess(VENV_PYTHON, "./scripts/media_control.py", "setvol", a)
+	},
+	
 }
 
 func main() {
