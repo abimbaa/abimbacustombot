@@ -26,6 +26,7 @@ var registry = map[string]CommandFunc{
 	"/ls":     handleListDir,
 	"/get":    handleGetFile,
 	"/cam":    handleWebcam,
+	"/clip": handleClipboard,
 }
 
 func main() {
@@ -81,6 +82,14 @@ func handleWebcam(args string) {
 
 	// Trigger the script with the arguments
 	runProcess(VENV_PYTHON, "./scripts/webcam.py", amountStr, delayStr)
+}
+
+func handleClipboard(args string) {
+	if args == "" {
+		fmt.Println("⚠️ ERROR: Please specify an action. Usage: /clip get OR /clip set <text>")
+		return
+	}
+	runProcess(VENV_PYTHON, "./scripts/clipboard.py", args)
 }
 
 func handlePing(args string) { //a simple heartbeat to check if the bot is running
