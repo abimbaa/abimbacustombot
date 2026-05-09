@@ -45,26 +45,25 @@ func main() {
 
 // --- COMMAND HANDLERS ---
 
-func handleHelp(args string) {
-	fmt.Println("Commands: ")
-}
-
-func handlePing(args string) {
+func handlePing(args string) { //a simple heartbeat to check if the bot is running
 	fmt.Println("System is fully operational.")
 }
 
-func handleScreenshot(args string) {
+func handleHelp(args string) { //lists all commands, can take an argument to explain a given argument
+	fmt.Println("Commands: ")
+}
+
+func handleScreenshot(args string) {// takes two arguments: pollAmount (by default 1), pollDelay (by default 0) and sends screenshots
 	fmt.Println("Capturing screen...")
 	runProcess("python", "./scripts/screenshot.py")
 }
 
-func handleStatus(args string) {
-	// Example of doing logic entirely in Go without a script
+func handleStatus(args string) { // returns ram / cpu usage and maybe something else
 	fmt.Println("System Status: NORMAL")
 	fmt.Println("Memory Load: LOW")
 }
 
-func handleRawCommand(args string) {
+func handleRawCommand(args string) { //cmd commands
 	if args == "" {
 		fmt.Println("ERROR: No command provided.")
 		return
@@ -85,7 +84,7 @@ func handleRawCommand(args string) {
 	}
 }
 
-func handleDeepSeek(input string) {
+func handleDeepSeek(input string) { // deepseek to parse to a command
 	fmt.Printf("Sending to DeepSeek API for interpretation: %s\n", input)
 	// Implement HTTP request to DeepSeek here
 }
