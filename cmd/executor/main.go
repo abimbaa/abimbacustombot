@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+	"time"
 )
 
 const VENV_PYTHON = "./scripts/.venv/Scripts/python.exe"
@@ -16,7 +18,9 @@ const VENV_PYTHON = "./scripts/.venv/Scripts/python.exe"
 type CommandFunc func(args string)
 
 // 1. THE REGISTRY: Add new commands here to scale easily
-var registry = map[string]CommandFunc{
+var registry map[string]CommandFunc
+func init() {
+	registry = map[string]CommandFunc{
 	"/start":  handleHelp,
 	"/help":   handleHelp,
 	"/ping":   handlePing,
@@ -53,7 +57,11 @@ var registry = map[string]CommandFunc{
 	"/restart":  func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "restart") },
 	"/lock":     func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "lock") },
 	"/sleep":    func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "sleep") },
-	
+	"/createmacro": handleCreateMacro,
+	"/macros":      handleListMacros,
+	"/macro":       handleRunMacro,
+	"/delmacro":    handleDelMacro,
+}
 }
 
 func main() {
@@ -215,6 +223,87 @@ func handleDeepSeek(input string) { // deepseek to parse to a command
 	// Implement HTTP request to DeepSeek here
 }
 
+func handleCreateMacro(args string) {
+	// Split by newline to separate the name from the commands
+	lines := strings.Split(strings.ReplaceAll(args, "\r\n", "\n"), "\n")
+	if len(lines) < 2 {
+		fmt.Println("⚠️ Usage (Send as one message):\n/createmacro <name>\n/command1\n/command2")
+		return
+	}
+
+	name := strings.TrimSpace(lines[0])
+	var commands []string
+	for _, line := range lines[1:] {
+		line = strings.TrimSpace(line)
+		if line != "" {
+			commands = append(commands, line)
+		}
+	}
+
+	macros := loadMacros()
+	macros[name] = commands
+	saveMacros(macros)
+	fmt.Printf("✅ Macro '%s' saved with %d commands.\n", name, len(commands))
+}
+
+func handleListMacros(args string) {
+	macros := loadMacros()
+	if len(macros) == 0 {
+		fmt.Println("No macros found.")
+		return
+	}
+
+	fmt.Println("**Saved Macros:**")
+	for name, cmds := range macros {
+		fmt.Printf("🔸 %s (%d cmds)\n", name, len(cmds))
+	}
+}
+
+func handleRunMacro(args string) {
+	name := strings.TrimSpace(args)
+	macros := loadMacros()
+	cmds, exists := macros[name]
+	if !exists {
+		fmt.Printf("Macro '%s' not found.\n", name)
+		return
+	}
+
+	fmt.Printf("Running macro: %s\n", name)
+	for _, cmdStr := range cmds {
+		fmt.Printf("▶️ %s\n", cmdStr)
+
+		// Parse the saved command just like an incoming Telegram message
+		parts := strings.SplitN(cmdStr, " ", 2)
+		cmd := strings.ToLower(parts[0])
+		cmdArgs := ""
+		if len(parts) > 1 {
+			cmdArgs = parts[1]
+		}
+
+		// Trigger the function directly from your registry
+		if handler, ok := registry[cmd]; ok {
+			handler(cmdArgs)
+			// Small delay so we don't overwhelm the OS when opening multiple apps
+			time.Sleep(1 * time.Second)
+		} else {
+			fmt.Printf("⚠️ Unknown command in macro: %s\n", cmd)
+		}
+	}
+	fmt.Println("✅ Macro complete.")
+}
+
+func handleDelMacro(args string) {
+	name := strings.TrimSpace(args)
+	macros := loadMacros()
+	if _, exists := macros[name]; exists {
+		delete(macros, name)
+		saveMacros(macros)
+		fmt.Printf("Deleted macro: %s\n", name)
+	} else {
+		fmt.Printf("Macro '%s' not found.\n", name)
+	}
+}
+
 // --- UTILITIES ---
 
 func runProcess(name string, args ...string) {
@@ -234,4 +323,21 @@ func runProcess(name string, args ...string) {
 	if err != nil {
 		fmt.Printf("\nERROR: Execution failed - %v\n", err)
 	}
+}
+
+var macrosFile = "data/macros.json"
+
+func loadMacros() map[string][]string {
+	macros := make(map[string][]string)
+	data, err := os.ReadFile(macrosFile)
+	if err == nil {
+		json.Unmarshal(data, &macros)
+	}
+	return macros
+}
+
+func saveMacros(macros map[string][]string) {
+	os.MkdirAll("data", 0755)
+	data, _ := json.MarshalIndent(macros, "", "  ")
+	os.WriteFile(macrosFile, data, 0644)
 }
