@@ -1,6 +1,7 @@
 # Go
 bin/
 *.exe
+*.exe~
 go.sum
 
 # Python
@@ -9,3 +10,4 @@ scripts/.venv/
 
 # Other
 .env
+*.cwd

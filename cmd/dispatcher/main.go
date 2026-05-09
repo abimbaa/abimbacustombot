@@ -49,6 +49,7 @@ func main() {
 		defer cancel()
 
 		cmd := exec.CommandContext(ctx, "./executor.exe", c.Text())
+		cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 		stdout, err := cmd.StdoutPipe()
 		if err != nil {
 			return c.Send("⚠️ ERROR: Internal pipe failure.")
@@ -59,25 +60,42 @@ func main() {
 		}
 
 		scanner := bufio.NewScanner(stdout)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
-			if line == "" {
-				continue
-			}
+		var textBuffer strings.Builder
 
-			switch {
-			case strings.HasPrefix(line, "FILE:"):
-				path := strings.TrimPrefix(line, "FILE:")
-				c.Send(&telebot.Document{File: telebot.FromDisk(path)})
-			case strings.HasPrefix(line, "PHOTO:"):
-				path := strings.TrimPrefix(line, "PHOTO:")
-				c.Send(&telebot.Photo{File: telebot.FromDisk(path)})
-			case strings.HasPrefix(line, "ERROR:"):
-				c.Send("⚠️ " + strings.TrimPrefix(line, "ERROR:"))
-			default:
-				c.Send(line)
+		// Helper to flush the buffer
+		flushBuffer := func() {
+			if textBuffer.Len() > 0 {
+				c.Send(textBuffer.String())
+				textBuffer.Reset()
 			}
 		}
+
+		for scanner.Scan() {
+			line := scanner.Text() // Don't trim yet to preserve script formatting
+			cleanLine := strings.TrimSpace(line)
+
+			switch {
+			case strings.HasPrefix(cleanLine, "FILE:"):
+				flushBuffer() // Send any pending text before the file
+				c.Send(&telebot.Document{File: telebot.FromDisk(strings.TrimPrefix(cleanLine, "FILE:"))})
+				
+			case strings.HasPrefix(cleanLine, "PHOTO:"):
+				flushBuffer()
+				c.Send(&telebot.Photo{File: telebot.FromDisk(strings.TrimPrefix(cleanLine, "PHOTO:"))})
+				
+			case strings.HasPrefix(cleanLine, "ERROR:"):
+				flushBuffer()
+				c.Send("⚠️ " + strings.TrimPrefix(cleanLine, "ERROR:"))
+				
+			default:
+				textBuffer.WriteString(line + "\n")
+				// Telegram limit is 4096. Flush if we get close.
+				if textBuffer.Len() >= 4000 {
+					flushBuffer()
+				}
+			}
+		} 
+		flushBuffer()
 
 		if err := cmd.Wait(); err != nil {
 			if ctx.Err() == context.DeadlineExceeded {

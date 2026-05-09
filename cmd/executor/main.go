@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 )
 
 // CommandFunc defines the signature for all command handlers
@@ -12,6 +13,8 @@ type CommandFunc func(args string)
 
 // 1. THE REGISTRY: Add new commands here to scale easily
 var registry = map[string]CommandFunc{
+	"/start":  handleHelp,
+	"/help":   handleHelp,
 	"/ping":   handlePing,
 	"/ss":     handleScreenshot,
 	"/status": handleStatus,
@@ -42,8 +45,12 @@ func main() {
 
 // --- COMMAND HANDLERS ---
 
+func handleHelp(args string) {
+	fmt.Println("Commands: ")
+}
+
 func handlePing(args string) {
-	fmt.Println("Pong! 🏓 System is fully operational.")
+	fmt.Println("System is fully operational.")
 }
 
 func handleScreenshot(args string) {
@@ -59,11 +66,23 @@ func handleStatus(args string) {
 
 func handleRawCommand(args string) {
 	if args == "" {
-		fmt.Println("ERROR: You must provide a command to run.")
+		fmt.Println("ERROR: No command provided.")
 		return
 	}
-	// Warning: High permission capability
-	runProcess("cmd", "/C", args) 
+	cmd := exec.Command("cmd", "/C", args)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+
+	out, err := cmd.CombinedOutput()
+	
+	if len(out) > 0 {
+		fmt.Print(string(out))
+	} else {
+		fmt.Print("Done.")
+	}
+
+	if err != nil {
+		fmt.Printf("\n[System Error]: %v\n", err)
+	}
 }
 
 func handleDeepSeek(input string) {
@@ -76,6 +95,7 @@ func handleDeepSeek(input string) {
 // runProcess executes external commands and bridges their output to our API contract
 func runProcess(name string, args ...string) {
 	cmd := exec.Command(name, args...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		fmt.Printf("ERROR: Execution failed - %v\n", err)
