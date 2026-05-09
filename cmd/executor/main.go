@@ -182,10 +182,6 @@ func handlePing(args string) { //a simple heartbeat to check if the bot is runni
 	fmt.Println("System is fully operational.")
 }
 
-func handleHelp(args string) { //lists all commands, can take an argument to explain a given argument
-	fmt.Println("Commands: ")
-}
-
 func handleScreenshot(args string) {
     pollAmount := 1
     pollDelay := 0
@@ -200,6 +196,65 @@ func handleScreenshot(args string) {
 
 func handleStatus(args string) { // returns ram / cpu usage and maybe something else
 	runProcess(VENV_PYTHON, "./scripts/status.py")
+}
+
+func handleHelp(args string) {
+	args = strings.TrimSpace(args)
+
+	docs := map[string]struct{ Short, Long string }{
+		"/help":        {"Show this help menu", "Usage: /help [command]\nLists all commands, or shows details for a specific one."},
+		"/ping":        {"Check bot status", "Usage: /ping\nReturns a pong message to verify the bot is online."},
+		"/ss":          {"Take a screenshot", "Usage: /ss [pollAmount = 1] [pollDelay = 0]\nCaptures all monitors and sends the images. Repeats pollAmount number of times with a pollDelay delay."},
+		"/status":      {"System status", "Usage: /status\nDisplays CPU, RAM."},
+		"/cmd":         {"Run shell command", "Usage: /cmd <command>\nExecutes a raw command prompt or powershell command and returns the output. Use && to chain commands"},
+		"/ls":          {"List directory", "Usage: /ls [path]\nLists files in the current or specified directory."},
+		"/get":         {"Get a file", "Usage: /get <filepath>\nUploads a specified file from your PC to Telegram."},
+		"/cam":         {"Take webcam picture", "Usage: /cam [pollAmount = 1] [pollDelay = 0]\nCaptures an image from the default webcam. Repeats pollAmount of times with a pollDelay delay."},
+		"/clip":        {"Read clipboard", "Usage: /clip get|set <content>\nReturns the current text copied to your PC clipboard | Puts the <content> into the PC's clipboard."},
+		"/type":        {"Type text", "Usage: /type <text>\nSimulates keyboard typing the provided text. Use $key$ to simulate special keys like $enter$"},
+		"/ps":          {"List processes", "Usage: /ps [name]\nLists currently running applications and processes. Add a name after to filter by name."},
+		"/kill":        {"Kill a process", "Usage: /kill <name_or_pid>\nTerminates a process by its executable name or Process ID."},
+		"/run":         {"Launch application", "Usage: /run <app_name>\nSearches your PC and launches the requested application."},
+		"/note":        {"Add a note", "Usage: /note <title> <body>\nSaves a markdown note to your local data folder."},
+		"/notes":       {"Read all notes", "Usage: /notes\nPrints the contents of all saved notes."},
+		"/plan":        {"Add a plan", "Usage: /plan <text>\nAppends a new task to your plans list."},
+		"/plans":       {"List plans", "Usage: /plans\nShows a numbered list of all your plans."},
+		"/pdel":        {"Delete a plan", "Usage: /pdel <number>\nDeletes the plan at the specified number."},
+		"/volup":       {"Increase volume", "Usage: /volup\nIncreases system volume by 2%."},
+		"/voldown":     {"Decrease volume", "Usage: /voldown\nDecreases system volume by 2%."},
+		"/vol":         {"Set exact volume", "Usage: /vol <0-100>\nSets system volume to the exact percentage."},
+		"/mute":        {"Toggle mute", "Usage: /mute\nMutes or unmutes the system audio."},
+		"/pause":       {"Play/Pause media", "Usage: /pause\nSimulates the play/pause media key."},
+		"/next":        {"Next track", "Usage: /next\nSkips to the next media track."},
+		"/prev":        {"Previous track", "Usage: /prev\nGoes to the previous media track."},
+		"/shutdown":    {"Shutdown PC", "Usage: /shutdown\nTurns off the computer in 5 seconds."},
+		"/restart":     {"Restart PC", "Usage: /restart\nReboots the computer in 5 seconds."},
+		"/lock":        {"Lock PC", "Usage: /lock\nLocks your Windows session."},
+		"/sleep":       {"Put PC to sleep", "Usage: /sleep\nSuspends the computer."},
+		"/createmacro": {"Create a macro", "Usage: /createmacro <name>\n/cmd1\n/cmd2\nSaves a chain of commands to run together."},
+		"/macros":      {"List all macros", "Usage: /macros\nShows all your saved macros."},
+		"/macro":       {"Run a macro", "Usage: /macro <name>\nExecutes the specified macro sequence."},
+		"/delmacro":    {"Delete a macro", "Usage: /delmacro <name>\nRemoves a saved macro."},
+		"/stt":         {"Transcribe audio", "Usage: /stt <filepath>\nTranscribes an audio file. Note: Voice / video messages trigger this automatically."},
+	}
+
+	if args == "" {
+		fmt.Println("Available Commands:")
+		for cmd, doc := range docs {
+			fmt.Printf("%s - %s\n", cmd, doc.Short)
+		}
+		fmt.Println("\nTip: Type `/help <command>` for details.")
+	} else {
+		if !strings.HasPrefix(args, "/") {
+			args = "/" + args
+		}
+		
+		if doc, exists := docs[args]; exists {
+			fmt.Printf("%s\n", doc.Long)
+		} else {
+			fmt.Printf("Unknown command: %s. (If this is a custom macro, use /macros to see it).\n", args)
+		}
+	}
 }
 
 func handleRawCommand(args string) { //cmd commands
