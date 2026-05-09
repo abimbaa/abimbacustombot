@@ -49,6 +49,10 @@ var registry = map[string]CommandFunc{
 		}
 		runProcess(VENV_PYTHON, "./scripts/media_control.py", "setvol", a)
 	},
+	"/shutdown": func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "shutdown") },
+	"/restart":  func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "restart") },
+	"/lock":     func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "lock") },
+	"/sleep":    func(a string) { runProcess(VENV_PYTHON, "./scripts/power.py", "sleep") },
 	
 }
 
