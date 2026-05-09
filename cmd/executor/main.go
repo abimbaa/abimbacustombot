@@ -23,6 +23,8 @@ var registry = map[string]CommandFunc{
 	"/ss":     handleScreenshot,
 	"/status": handleStatus,
 	"/cmd":    handleRawCommand, // e.g., "/cmd dir"
+	"/ls":     handleListDir,
+	"/get":    handleGetFile,
 }
 
 func main() {
@@ -48,6 +50,20 @@ func main() {
 }
 
 // --- COMMAND HANDLERS ---
+
+func handleListDir(args string) {
+	runProcess(VENV_PYTHON, "./scripts/list_dir.py", args)
+}
+
+func handleGetFile(args string) {
+	if args == "" {
+		fmt.Println("⚠️ ERROR: Please specify a filename. Usage: /get <filename>")
+		return
+	}
+
+	fmt.Printf("🔍 Searching for '%s'...\n", args)
+	runProcess(VENV_PYTHON, "./scripts/get_file.py", args)
+}
 
 func handlePing(args string) { //a simple heartbeat to check if the bot is running
 	fmt.Println("System is fully operational.")

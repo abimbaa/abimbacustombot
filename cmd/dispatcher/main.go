@@ -85,7 +85,14 @@ b.Handle(telebot.OnText, func(c telebot.Context) error {
 			case strings.HasPrefix(cleanLine, "FILE:"):
 				flushBuffer()
 				path := strings.TrimSpace(strings.TrimPrefix(cleanLine, "FILE:"))
-				c.Send(&telebot.Document{File: telebot.FromDisk(path)})
+				
+				// Explicitly tell Telegram the original file name and extension
+				doc := &telebot.Document{
+					File:     telebot.FromDisk(path),
+					FileName: filepath.Base(path), // e.g., grabs "homework.pdf" from the full path
+				}
+				
+				c.Send(doc)
 
 			case strings.HasPrefix(cleanLine, "PHOTO:"):
 				flushBuffer()
