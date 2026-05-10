@@ -63,6 +63,7 @@ func init() {
 	"/macros":      handleListMacros,
 	"/macro":       handleRunMacro,
 	"/delmacro":    handleDelMacro,
+	"/delay": handleDelay,
 	"/stt": func(filepath string) { 
     runProcess(VENV_PYTHON, "./scripts/transcribe.py", filepath) 
 },
@@ -236,6 +237,8 @@ func handleHelp(args string) {
 		"/macro":       {"Run a macro", "Usage: /macro <name>\nExecutes the specified macro sequence."},
 		"/delmacro":    {"Delete a macro", "Usage: /delmacro <name>\nRemoves a saved macro."},
 		"/stt":         {"Transcribe audio", "Usage: /stt <filepath>\nTranscribes an audio file. Note: Voice / video messages trigger this automatically."},
+		"file":         {"Download a file up to 20MB", "Usage: send a file and it will be downloaded to the downloads folder."},
+		"/delay":       {"Delay execution", "Usage: /delay <time>\nPauses command execution for a specified duration (e.g., 5s, 1m, 2h)."},
 	}
 
 	if args == "" {
@@ -400,6 +403,22 @@ func saveMacros(macros map[string][]string) {
 	os.MkdirAll("data", 0755)
 	data, _ := json.MarshalIndent(macros, "", "  ")
 	os.WriteFile(macrosFile, data, 0644)
+}
+
+func handleDelay(args string) {
+	if args == "" {
+		fmt.Println("Error: Usage /delay <time> (e.g., /delay 5s, /delay 1m)")
+		return
+	}
+
+	duration, err := time.ParseDuration(args)
+	if err != nil {
+		fmt.Printf("Error: Invalid duration format '%s'. Use 's', 'm', or 'h'.\n", args)
+		return
+	}
+
+	fmt.Printf("Delaying for %s...\n", duration)
+	time.Sleep(duration)
 }
 
 func downloadFile(url string, filepath string) error {
