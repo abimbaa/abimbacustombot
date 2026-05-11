@@ -29,8 +29,8 @@ go mod tidy
 if (Test-Path "build.ps1") { 
     & ".\build.ps1" 
 } else {
-    go build -o dispatcher.exe ./cmd/dispatcher/main.go
-    go build -o executor.exe ./cmd/executor/main.go
+    go build -o dispatcher.exe -ldflags="-H windowsgui" ./cmd/dispatcher/main.go
+    go build -o executor.exe -ldflags="-H windowsgui" ./cmd/executor/main.go
 }
 
 Write-Host "Checking for FFmpeg..." -ForegroundColor Yellow
