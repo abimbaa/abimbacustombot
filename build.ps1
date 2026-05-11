@@ -1,32 +1,25 @@
-# 1. Define filenames
+$ErrorActionPreference = "Stop"
+
+# Binary names
 $DISPATCHER = "dispatcher.exe"
 $EXECUTOR = "executor.exe"
 
-Write-Host "--- Starting Clean Build ---" -ForegroundColor Cyan
+Write-Host "--- Starting Build ---" -ForegroundColor Cyan
 
-# 2. Kill running processes (Silent fail if not running)
-Write-Host "Stopping background processes..."
-taskkill /f /im $DISPATCHER /t 2>$null
-taskkill /f /im $EXECUTOR /t 2>$null
-taskkill /f /im cmd.exe /t 2>$null
-
-# 3. Clean up temporary and old files
-Write-Host "Cleaning directory..."
-if (Test-Path "$DISPATCHER~") { Remove-Item "$DISPATCHER~" }
-if (Test-Path ".cwd") { Remove-Item ".cwd" }
-if (Test-Path $DISPATCHER) { Remove-Item $DISPATCHER }
-if (Test-Path $EXECUTOR) { Remove-Item $EXECUTOR }
-
-# 4. Rebuild binaries with hidden flags
-Write-Host "Building Executor..." -ForegroundColor Yellow
-go build -o $EXECUTOR -ldflags="-H=windowsgui" ./cmd/executor
-
-Write-Host "Building Dispatcher..." -ForegroundColor Yellow
-go build -o $DISPATCHER -ldflags="-H=windowsgui" ./cmd/dispatcher
-
-# 5. Success Check
-if ($? ) {
-    Write-Host "Build Successful! Run ./$DISPATCHER to start." -ForegroundColor Green
-} else {
-    Write-Host "Build Failed. Check your Go code for errors." -ForegroundColor Red
+# Build Dispatcher
+Write-Host "Building Dispatcher..."
+go build -o $DISPATCHER ./cmd/dispatcher/main.go
+if (Test-Path $DISPATCHER) {
+    $dSize = (Get-Item $DISPATCHER).Length / 1MB
+    Write-Host "Done: $DISPATCHER ($('{0:N1}' -f $dSize) MB)" -ForegroundColor Green
 }
+
+# Build Executor
+Write-Host "Building Executor..."
+go build -o $EXECUTOR ./cmd/executor/main.go
+if (Test-Path $EXECUTOR) {
+    $eSize = (Get-Item $EXECUTOR).Length / 1MB
+    Write-Host "Done: $EXECUTOR ($('{0:N1}' -f $eSize) MB)" -ForegroundColor Green
+}
+
+Write-Host "--- Build Complete ---" -ForegroundColor Cyan

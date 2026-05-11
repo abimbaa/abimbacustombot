@@ -33,15 +33,25 @@ def main():
             return
 
         # 2. Search logic if the quick start fails
+        # Load custom search folders from data/search_folders.txt
         search_paths = [
             os.environ.get("ProgramFiles"),
             os.environ.get("ProgramFiles(x86)"),
             os.environ.get("AppData"),
             os.environ.get("LocalAppData"),
-            r"E:\Programs",
-            r"E:\Games",
-            r"E:\SteamLibrary\steamapps\common"
         ]
+        
+        # Add custom folders from search_folders.txt
+        search_folders_file = os.path.join(os.path.dirname(__file__), "..", "data", "search_folders.txt")
+        if os.path.exists(search_folders_file):
+            try:
+                with open(search_folders_file, "r") as f:
+                    for line in f:
+                        folder = line.strip()
+                        if folder and not folder.startswith("#"):  # Skip empty lines and comments
+                            search_paths.append(folder)
+            except Exception as e:
+                print(f"Warning: Could not read search_folders.txt - {str(e)}", flush=True)
 
         for base_path in search_paths:
             if not base_path or not os.path.exists(base_path): 
