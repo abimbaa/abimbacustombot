@@ -11,10 +11,10 @@ A Telegram bot for remote Windows PC automation. Execute commands, manage files,
 - FFmpeg (Required for audio tasks)
 
 ### Setup release version (2 minutes)
-#1. Download the latest release
-#2. Unzip it and find `setup.ps1`. Run it with powershell 
-#3. Set up the `.env` file with your ID and bot token. You can see an example in `.env.example`
-#4. Run `dispatcher.exe`
+1. Download the latest release.
+2. Unzip it and find `setup.ps1`. Run it with powershell
+3. Set up the `.env` file with your ID and bot token. You can see an example in `.env.example`
+4. Run `dispatcher.exe`
 Done!
 
 
