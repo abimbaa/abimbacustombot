@@ -43,10 +43,16 @@ try {
 
 # 2. .env Setup
 if (-not (Test-Path ".env")) {
-    "BOT_TOKEN=token_here`nMY_ID=id_here" | Out-File -FilePath ".env" -Encoding utf8
-    Write-Host "OK: .env created" -ForegroundColor Green
+    # Using Set-Content with Ascii encoding to prevent Go parsing errors
+    $envContent = "BOT_TOKEN=token_here", "MY_ID=id_here"
+    Set-Content -Path ".env" -Value $envContent -Encoding Ascii
+    Write-Host "OK: .env created (ASCII encoding)" -ForegroundColor Green
+} else {
+    Write-Host "OK: .env already exists." -ForegroundColor Gray
 }
 
+# 3. Python Environment
+# ... (rest of your script remains the same)
 # 3. Python Environment
 Write-Host "`n--- 2. Configuring Python ---" -ForegroundColor Cyan
 if (-not (Test-Path $vpath)) { 
