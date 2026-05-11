@@ -65,6 +65,16 @@ abimbaCustomBot/
 └── executor.exe            # Built executor (production)
 ```
 
+## Setting additional folders
+
+The `/run` command searches for executable files inside the default environment folders (appdata, programfiles, etc) with depth = 2. To add other folders to this search add a `search_folders.txt` inside the `data/` folder. In this text file write the folder paths in this format:
+```
+E:\Programs
+E:\Games
+E:\SteamLibrary\steamapps\common
+...
+```
+
 ## Troubleshooting
 
 | Issue | Solution |
