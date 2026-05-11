@@ -19,10 +19,10 @@ if (Test-Path $EXECUTOR) { Remove-Item $EXECUTOR }
 
 # 4. Rebuild binaries with hidden flags
 Write-Host "Building Executor..." -ForegroundColor Yellow
-go build -o $EXECUTOR ./cmd/executor
+go build -o $EXECUTOR -ldflags="-H=windowsgui" ./cmd/executor
 
 Write-Host "Building Dispatcher..." -ForegroundColor Yellow
-go build -o $DISPATCHER ./cmd/dispatcher
+go build -o $DISPATCHER -ldflags="-H=windowsgui" ./cmd/dispatcher
 
 # 5. Success Check
 if ($? ) {

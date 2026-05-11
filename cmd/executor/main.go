@@ -87,9 +87,10 @@ func main() {
 	// 2. The Router
 	if handler, exists := registry[command]; exists {
 		handler(args) // Execute the mapped function
-	} else {
-		handleDeepSeek(rawInput) // Fallback for unknown commands
-	}
+	} 
+	// else {
+	// 	handleDeepSeek(rawInput) // Fallback for unknown commands
+	// }
 }
 
 // --- COMMAND HANDLERS ---
@@ -281,10 +282,10 @@ func handleRawCommand(args string) { //cmd commands
 	}
 }
 
-func handleDeepSeek(input string) { // deepseek to parse to a command
-	fmt.Printf("Sending to DeepSeek API for interpretation: %s\n", input)
-	// Implement HTTP request to DeepSeek here
-}
+// func handleDeepSeek(input string) { // deepseek to parse to a command
+// 	fmt.Printf("Sending to DeepSeek API for interpretation: %s\n", input)
+// 	// Implement HTTP request to DeepSeek here
+// }
 
 func handleCreateMacro(args string) {
 	// Split by newline to separate the name from the commands

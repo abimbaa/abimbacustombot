@@ -7,26 +7,38 @@ def main():
         print("ERROR: Usage: /type <text>", flush=True)
         return
 
-    # Combine arguments into one string
     input_text = " ".join(sys.argv[1:])
 
     try:
-        parts = re.split(r'(\$[a-z]+\$)', input_text)
+        # Changed regex to [^$]+ which means "anything that isn't a dollar sign"
+        # This allows symbols like +, numbers, and uppercase letters
+        parts = re.split(r'(\$[^$]+\$)', input_text)
 
         for part in parts:
+            if not part:
+                continue
+
             if part.startswith('$') and part.endswith('$'):
-                # Extract the key name (e.g., "enter" from "$enter$")
-                key = part.strip('$').lower()
+                # Extract content and normalize to lowercase
+                content = part.strip('$').lower()
+                
                 try:
-                    pyautogui.press(key)
-                    print(f"Pressed: {key}", flush=True)
-                except Exception:
-                    # If it's not a valid key, just type it literally
+                    # Check if it's a combination (contains '+')
+                    if '+' in content:
+                        keys = content.split('+')
+                        pyautogui.hotkey(*keys)
+                        print(f"Hotkey: {content}", flush=True)
+                    else:
+                        # Single key press
+                        pyautogui.press(content)
+                        print(f"Pressed: {content}", flush=True)
+                except Exception as e:
+                    # Fallback: type it literally if pyautogui doesn't recognize the key
                     pyautogui.write(part)
+                    print(f"Fallback typing: {part}", flush=True)
             else:
                 # Type normal text
-                if part:
-                    pyautogui.write(part, interval=0.01)
+                pyautogui.write(part, interval=0.01)
 
         print("Done.", flush=True)
     except Exception as e:
