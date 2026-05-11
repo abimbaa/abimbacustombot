@@ -9,18 +9,36 @@ $vpython = "$vpath\Scripts\python.exe"
 
 Write-Host "--- 1. Checking Prerequisites ---" -ForegroundColor Cyan
 
+# --- Check Go ---
 try { 
-    $go = go version
-    Write-Host "OK: $go" -ForegroundColor Green 
+    $go = go version; Write-Host "OK: $go" -ForegroundColor Green 
 } catch { 
     Write-Host "ERROR: Go missing." -ForegroundColor Red; exit 1 
 }
 
+# --- Check Python ---
 try { 
-    $py = python --version
-    Write-Host "OK: $py" -ForegroundColor Green 
+    $py = python --version; Write-Host "OK: $py" -ForegroundColor Green 
 } catch { 
     Write-Host "ERROR: Python missing." -ForegroundColor Red; exit 1 
+}
+
+# --- Check/Download FFmpeg ---
+try { 
+    $ff = ffmpeg -version
+    $ffLine = ($ff -split "`n")[0]
+    Write-Host "OK: $ffLine" -ForegroundColor Green 
+} catch { 
+    Write-Host "FFmpeg not found. Attempting to install via Winget..." -ForegroundColor Yellow
+    try {
+        # Using Winget to install FFmpeg automatically
+        winget install --id=Gyan.FFmpeg -e --silent --accept-source-agreements --accept-package-agreements
+        Write-Host "SUCCESS: FFmpeg installed. You may need to RESTART your terminal after setup." -ForegroundColor Green
+    } catch {
+        Write-Host "FAILED: Could not auto-install FFmpeg." -ForegroundColor Red
+        Write-Host "Please install it manually: https://ffmpeg.org/download.html" -ForegroundColor Gray
+        # We don't exit 1 here unless FFmpeg is absolutely mandatory for the bot to start
+    }
 }
 
 # 2. .env Setup
